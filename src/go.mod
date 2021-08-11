@@ -1,4 +1,4 @@
-module account_fy_sdk
+module account_fy_sdk/src
 
 go 1.16
 
