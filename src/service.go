@@ -18,27 +18,12 @@ const (
 	elecFeeDailyURL          = "/open/ac/water/elecFeeDaily"
 )
 
-var AccountService = &accountService{
-				Context: nil,
-				SchoolSet: url.Values{},
-				RoomSet: url.Values{},
-				Wg: new(sync.WaitGroup),
-	}
+var AccountService = new(accountService)
 
 // Account Service
 type accountService struct {
 	*gin.Context
-	RoomSet	    url.Values
-	SchoolSet   url.Values
-	Wg			*sync.WaitGroup
-}
-
-func NewAccountService(c *gin.Context) {
-	s := AccountService
-	if s.Context == nil {
-		s.Context = c
-	}
-	return
+	wg	*sync.WaitGroup
 }
 
 func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err error) {
