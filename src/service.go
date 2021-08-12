@@ -15,7 +15,7 @@ import (
 const (
 	showAcInfoURL            = "/open/ac/water/showAcInfo"
 	acSetURL				 = "/open/ac/water/acSet"
-	elecFeeDailyURL          = "/open/ac/water/elecFeeDaily"
+	elecFeeDailyURL          = "/open/ac/water/elecFeeSum"
 )
 
 var AccountService = new(accountService)
