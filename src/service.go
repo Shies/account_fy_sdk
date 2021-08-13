@@ -1,6 +1,7 @@
 package account_service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -9,21 +10,31 @@ import (
 	"sync"
 
 	xutil "github.com/donetkit/wechat/util"
-	"github.com/gin-gonic/gin"
 )
 
 const (
 	showAcInfoURL            = "/open/ac/water/showAcInfo"
 	acSetURL				 = "/open/ac/water/acSet"
-	elecFeeDailyURL          = "/open/ac/water/elecFeeSum"
+	elecFeeSumURL          	 = "/open/ac/water/elecFeeSum"
 )
 
-var AccountService = new(accountService)
+var AccountService = NewService()
 
 // Account Service
 type accountService struct {
-	*gin.Context
-	wg	*sync.WaitGroup
+	context.Context
+	queryStatus map[string]*AcStatus
+	wg			*sync.WaitGroup
+}
+
+func NewService() *accountService {
+	s := &accountService{
+		Context:     context.TODO(),
+		queryStatus: make(map[string]*AcStatus),
+		wg:          new(sync.WaitGroup),
+	}
+
+	return s
 }
 
 func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err error) {
@@ -93,7 +104,7 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	return
 }
 
-func (a *accountService) GetDailyInfo(scheme *Scheme, outParams *DailySumParams) (sum *DailySum, err error) {
+func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams) (sum *ElecSum, err error) {
 	var out = make(map[string]interface{})
 	out["account"] 	  = outParams.Account
 	out["address"]	  = outParams.Address
@@ -108,13 +119,13 @@ func (a *accountService) GetDailyInfo(scheme *Scheme, outParams *DailySumParams)
 		params.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	uri := scheme.RequestUrl + elecFeeDailyURL + "?" + params.Encode()
+	uri := scheme.RequestUrl + elecFeeSumURL + "?" + params.Encode()
 	response, err := xutil.HTTPGet(uri)
 	if err != nil {
 		return
 	}
 
-	var resp DailySumResponse
+	var resp ElecSumResponse
 	err = json.Unmarshal(response, &resp)
 	if err != nil {
 		return
@@ -128,9 +139,15 @@ func (a *accountService) GetDailyInfo(scheme *Scheme, outParams *DailySumParams)
 }
 
 func (a *accountService) LoadQuery(scheme *Scheme) (status []*AcStatus) {
-	status, err := a.GetQueryInfo(scheme)
+	queryStatus, err := a.GetQueryInfo(scheme)
 	if err != nil {
 		return
+	}
+
+	for _, v := range queryStatus {
+		if _, ok := a.queryStatus[v.Address]; !ok {
+			status = append(status, v)
+		}
 	}
 
 	return status

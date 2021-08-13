@@ -37,24 +37,24 @@ type AcSetResponse struct {
 	Data 	interface{}		`json:"data"`
 }
 
-type DailySumParams struct {
+type ElecSumParams struct {
 	Account 	string		`json:"account"`
 	Address		string		`json:"address"`
 	FromDate 	string		`json:"fromDate"`
 	ToDate		string		`json:"toDate"`
 }
 
-type DailySum struct {
+type ElecSum struct {
 	UsageSum	float64		`json:"usageSum"`	//该时间内空调内机分摊的总电量，单位度
 	Address 	string		`json:"address"`	//地址
 	FromDate	float64		`json:"fromDate"`	//空调内机分摊的电费（电量乘以每度的价格）
 	DivideDate  string		`json:"divideDate"`
 }
 
-type DailySumResponse struct {
+type ElecSumResponse struct {
 	Code 	int32			`json:"code"`
 	Msg  	string			`json:"msg"`
-	Data 	*DailySum		`json:"data"`
+	Data 	*ElecSum		`json:"data"`
 }
 
 type Scheme struct {
