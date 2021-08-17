@@ -3,6 +3,7 @@ package account_service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -56,6 +57,11 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 		return
 	}
 
+	if resp.Code <= 0 {
+		err = errors.New(resp.Msg)
+		return
+	}
+
 	for _, v := range resp.Data {
 		if v.Account == scheme.Account {
 			for _, status := range v.AcStatus {
@@ -98,9 +104,11 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	}
 
 	// fmt.Println(string(response), resp)
-	if resp.Code > 0 {
-		return true, nil
+	if resp.Code <= 0 {
+		err = errors.New(resp.Msg)
+		return
 	}
+	alert = true
 	return
 }
 
@@ -132,9 +140,11 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 	}
 
 	// fmt.Println(string(response), resp.Data)
-	if resp.Code > 0 {
-		sum, err = resp.Data, nil
+	if resp.Code <= 0 {
+		err = errors.New(resp.Msg)
+		return
 	}
+	sum = resp.Data
 	return
 }
 
