@@ -73,7 +73,7 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 	return
 }
 
-func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (alert bool, err error) {
+func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (alert string, err error) {
 	var out = make(map[string]interface{})
 	out["account"] 	  = outParams.Account
 	out["action"] 	  = outParams.Action
@@ -108,7 +108,7 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 		err = errors.New(resp.Msg)
 		return
 	}
-	alert = true
+	alert = string(response)
 	return
 }
 
