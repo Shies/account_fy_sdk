@@ -45,6 +45,7 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 	params.Set("sign", strings.ToUpper(getSign(scheme, nil)))
 
 	uri := scheme.RequestUrl + showAcInfoURL + "?" + params.Encode()
+	fmt.Println(uri)
 	response, err := xutil.HTTPGet(uri)
 	if err != nil {
 		return
@@ -92,6 +93,7 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	}
 
 	uri := scheme.RequestUrl + acSetURL + "?" + params.Encode()
+	fmt.Println(uri)
 	response, err := xutil.HTTPPost(uri, params.Encode())
 	if err != nil {
 		return
@@ -128,6 +130,7 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 	}
 
 	uri := scheme.RequestUrl + elecFeeSumURL + "?" + params.Encode()
+	fmt.Println(uri)
 	response, err := xutil.HTTPGet(uri)
 	if err != nil {
 		return
