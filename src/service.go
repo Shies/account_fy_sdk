@@ -169,7 +169,7 @@ func (a *accountService) LoadQuery(scheme *Scheme) (status []*AcStatus) {
 	return status
 }
 
-func HttpGet(url string, header url.Values) (content string, err error) {
+func HttpGet(requestUrl string, header url.Values) (content string, err error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -178,7 +178,7 @@ func HttpGet(url string, header url.Values) (content string, err error) {
 		Transport: tr,
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		return
 	}
@@ -203,7 +203,7 @@ func HttpGet(url string, header url.Values) (content string, err error) {
 	return
 }
 
-func HttpPost(url string, data string, header url.Values) (content string, err error) {
+func HttpPost(requestUrl string, data string, header url.Values) (content string, err error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -212,7 +212,15 @@ func HttpPost(url string, data string, header url.Values) (content string, err e
 		Transport: tr,
 	}
 
-	req, err := http.NewRequest("POST", url, strings.NewReader(data))
+	query := make(map[string]string)
+	param := strings.Split(data, "&")
+	for _, v := range param {
+		value := strings.Split(v, "=")
+		query[value[0]] = value[1]
+	}
+
+	str, _ := json.Marshal(query)
+	req, err := http.NewRequest("POST", requestUrl, strings.NewReader(string(str)))
 	if err != nil {
 		return
 	}
