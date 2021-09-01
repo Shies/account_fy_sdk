@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	_ "log"
 	"net/url"
 	"strconv"
 	"strings"
@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	showAcInfoURL            = "/open/ac/water/showAcInfo"
-	acSetURL				 = "/open/ac/water/acSet"
-	elecFeeSumURL          	 = "/open/ac/water/elecFeeSum"
+	showAcInfoUri            = "/open/ac/water/showAcInfo"
+	acSetUri				 = "/open/ac/water/acSet"
+	elecFeeSumUri          	 = "/open/ac/water/elecFeeSum"
 )
 
 var AccountService = NewService()
@@ -45,9 +45,9 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 	params.Set("timestamp", strconv.FormatInt(MillUnix(), 10))
 	params.Set("sign", strings.ToUpper(getSign(scheme, nil)))
 
-	uri := scheme.RequestUrl + showAcInfoURL + "?" + params.Encode()
-	log.Printf(uri, "")
-	response, err := xutil.HTTPGet(uri)
+	url := scheme.RequestUrl + showAcInfoUri + "?" + params.Encode()
+	// log.Println(url)
+	response, err := xutil.HTTPGet(url)
 	if err != nil {
 		return
 	}
@@ -93,9 +93,9 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 		params.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	uri := scheme.RequestUrl + acSetURL + "?" + params.Encode()
-	log.Printf(uri, "")
-	response, err := xutil.HTTPPost(uri, params.Encode())
+	url := scheme.RequestUrl + acSetUri + "?" + params.Encode()
+	// log.Println(url)
+	response, err := xutil.HTTPPost(url, params.Encode())
 	if err != nil {
 		return
 	}
@@ -130,9 +130,9 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 		params.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	uri := scheme.RequestUrl + elecFeeSumURL + "?" + params.Encode()
-	log.Printf(uri, "")
-	response, err := xutil.HTTPGet(uri)
+	url := scheme.RequestUrl + elecFeeSumUri + "?" + params.Encode()
+	// log.Println(url)
+	response, err := xutil.HTTPGet(url)
 	if err != nil {
 		return
 	}
