@@ -87,17 +87,18 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	out["speed"] 	  = outParams.Speed
 	out["selectedAc"] = outParams.SelectedAc
 
-	params := url.Values{}
-	params.Set("appKey", scheme.AppKey)
-	params.Set("timestamp", strconv.FormatInt(MillUnix(), 10))
-	params.Set("sign", strings.ToUpper(getSign(scheme, out)))
+	params := make(map[string]interface{})
+	params["appKey"] = scheme.AppKey
+	params["timestamp"] = strconv.FormatInt(MillUnix(), 10)
+	params["sign"] = strings.ToUpper(getSign(scheme, out))
 	for k, v := range out {
-		params.Set(k, fmt.Sprintf("%v", v))
+		params[k] = fmt.Sprintf("%v", v)
 	}
 
-	url := scheme.RequestUrl + acSetUri + "?" + params.Encode()
+	pa, _ := json.Marshal(params)
+	url := scheme.RequestUrl + acSetUri
 	// log.Println(url)
-	response, err := HttpPost(url, params.Encode(), nil)
+	response, err := HttpPost(url, string(pa), nil)
 	if err != nil {
 		return
 	}
