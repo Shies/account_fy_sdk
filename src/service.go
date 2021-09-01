@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	_ "log"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -48,8 +48,8 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 	params.Set("sign", strings.ToUpper(getSign(scheme, nil)))
 
 	url := scheme.RequestUrl + showAcInfoUri + "?" + params.Encode()
-	// log.Println(url)
 	response, err := HttpGet(url, nil)
+	log.Printf("%s,%v", url, response)
 	if err != nil {
 		return
 	}
@@ -87,18 +87,17 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	out["speed"] 	  = outParams.Speed
 	out["selectedAc"] = outParams.SelectedAc
 
-	params := make(map[string]interface{})
-	params["appKey"] = scheme.AppKey
-	params["timestamp"] = strconv.FormatInt(MillUnix(), 10)
-	params["sign"] = strings.ToUpper(getSign(scheme, out))
+	params := url.Values{}
+	params.Set("appKey", scheme.AppKey)
+	params.Set("timestamp", strconv.FormatInt(MillUnix(), 10))
+	params.Set("sign", strings.ToUpper(getSign(scheme, out)))
 	for k, v := range out {
-		params[k] = fmt.Sprintf("%v", v)
+		params.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	pa, _ := json.Marshal(params)
-	url := scheme.RequestUrl + acSetUri
-	// log.Println(url)
-	response, err := HttpPost(url, string(pa), nil)
+	url := scheme.RequestUrl + acSetUri + "?" + params.Encode()
+	response, err := HttpPost(url, params.Encode(), nil)
+	log.Printf("%s,%v", url, response)
 	if err != nil {
 		return
 	}
@@ -134,8 +133,8 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 	}
 
 	url := scheme.RequestUrl + elecFeeSumUri + "?" + params.Encode()
-	// log.Println(url)
 	response, err := HttpGet(url, nil)
+	log.Printf("%s,%v", url, response)
 	if err != nil {
 		return
 	}
@@ -219,7 +218,7 @@ func HttpPost(url string, data string, header url.Values) (content string, err e
 	}
 
 	req.Header.Set("Content-Type","application/json")
-	req.Header.Set("Content-Length", strconv.Itoa(len([]byte(data))))
+	req.Header.Set("Content-Length", strconv.Itoa(len(data)))
 	if header != nil {
 		for k, _ := range header {
 			req.Header.Set(k, fmt.Sprintf("%v", header.Get(k)))
