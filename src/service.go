@@ -2,22 +2,24 @@ package account_service
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	_ "log"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
-
-	xutil "github.com/donetkit/wechat/util"
+	"time"
 )
 
 const (
-	showAcInfoUri            = "/open/ac/water/showAcInfo"
-	acSetUri				 = "/open/ac/water/acSet"
-	elecFeeSumUri          	 = "/open/ac/water/elecFeeSum"
+	showAcInfoUri		= "/open/ac/water/showAcInfo"
+	acSetUri			= "/open/ac/water/acSet"
+	elecFeeSumUri		= "/open/ac/water/elecFeeSum"
 )
 
 var AccountService = NewService()
@@ -47,14 +49,14 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 
 	url := scheme.RequestUrl + showAcInfoUri + "?" + params.Encode()
 	// log.Println(url)
-	response, err := xutil.HTTPGet(url)
+	response, err := HttpGet(url, nil)
 	if err != nil {
 		return
 	}
 
 	var resp AcInfoResponse
 	// fmt.Println(string(response))
-	err = json.Unmarshal(response, &resp)
+	err = json.Unmarshal([]byte(response), &resp)
 	if err != nil {
 		return
 	}
@@ -95,13 +97,13 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 
 	url := scheme.RequestUrl + acSetUri + "?" + params.Encode()
 	// log.Println(url)
-	response, err := xutil.HTTPPost(url, params.Encode())
+	response, err := HttpPost(url, params.Encode(), nil)
 	if err != nil {
 		return
 	}
 
 	var resp AcSetResponse
-	err = json.Unmarshal(response, &resp)
+	err = json.Unmarshal([]byte(response), &resp)
 	if err != nil {
 		return
 	}
@@ -132,13 +134,13 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 
 	url := scheme.RequestUrl + elecFeeSumUri + "?" + params.Encode()
 	// log.Println(url)
-	response, err := xutil.HTTPGet(url)
+	response, err := HttpGet(url, nil)
 	if err != nil {
 		return
 	}
 
 	var resp ElecSumResponse
-	err = json.Unmarshal(response, &resp)
+	err = json.Unmarshal([]byte(response), &resp)
 	if err != nil {
 		return
 	}
@@ -165,4 +167,74 @@ func (a *accountService) LoadQuery(scheme *Scheme) (status []*AcStatus) {
 	}
 
 	return status
+}
+
+func HttpGet(url string, header url.Values) (content string, err error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Timeout:   time.Second * 5, //默认5秒超时时间
+		Transport: tr,
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return
+	}
+
+	if header != nil {
+		for k, _ := range header {
+			req.Header.Set(k, fmt.Sprintf("%v", header.Get(k)))
+		}
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	content = string(bytes)
+	return
+}
+
+func HttpPost(url string, data string, header url.Values) (content string, err error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{
+		Timeout:   time.Second * 5, //默认5秒超时时间
+		Transport: tr,
+	}
+
+	req, err := http.NewRequest("POST", url, strings.NewReader(data))
+	if err != nil {
+		return
+	}
+
+	req.Header.Set("Content-Type","application/json")
+	req.Header.Set("Content-Length", strconv.Itoa(len([]byte(data))))
+	if header != nil {
+		for k, _ := range header {
+			req.Header.Set(k, fmt.Sprintf("%v", header.Get(k)))
+		}
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	content = string(bytes)
+	return
 }
