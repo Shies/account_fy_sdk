@@ -23,6 +23,7 @@ const (
 )
 
 var AccountService = NewService()
+type ValueSet map[string]interface{}
 
 // Account Service
 type accountService struct {
@@ -49,7 +50,7 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 
 	url := scheme.RequestUrl + showAcInfoUri + "?" + params.Encode()
 	response, err := HttpGet(url, nil)
-	log.Printf("%s,%v", url, response)
+	log.Printf("%s,%s", url, response)
 	if err != nil {
 		return
 	}
@@ -78,7 +79,7 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 }
 
 func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (alert string, err error) {
-	var out = make(map[string]interface{})
+	var out = make(ValueSet)
 	out["account"] 	  = outParams.Account
 	out["action"] 	  = outParams.Action
 	out["onOff"] 	  = outParams.OnOff
@@ -87,18 +88,17 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	out["speed"] 	  = outParams.Speed
 	out["selectedAc"] = outParams.SelectedAc
 
-	params := url.Values{}
-	params.Set("appKey", scheme.AppKey)
-	params.Set("timestamp", strconv.FormatInt(MillUnix(), 10))
-	params.Set("sign", strings.ToUpper(getSign(scheme, out)))
+	dataSet := make(ValueSet)
+	dataSet["appKey"] = scheme.AppKey
+	dataSet["timestamp"] = MillUnix()
+	dataSet["sign"] = strings.ToUpper(getSign(scheme, out))
 	for k, v := range out {
-		params.Set(k, fmt.Sprintf("%v", v))
+		dataSet[k] = v
 	}
 
-	query, _ := url.QueryUnescape(params.Encode())
-	url := scheme.RequestUrl + acSetUri + "?" + query
-	response, err := HttpPost(url, params, nil)
-	log.Printf("%s,%v", url, response)
+	url := scheme.RequestUrl + acSetUri
+	response, err := HttpPost(url, dataSet, nil)
+	log.Printf("%s,%v,%s", url, dataSet, response)
 	if err != nil {
 		return
 	}
@@ -135,7 +135,7 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 
 	url := scheme.RequestUrl + elecFeeSumUri + "?" + params.Encode()
 	response, err := HttpGet(url, nil)
-	log.Printf("%s,%v", url, response)
+	log.Printf("%s,%s", url, response)
 	if err != nil {
 		return
 	}
@@ -204,7 +204,7 @@ func HttpGet(requestUrl string, header url.Values) (content string, err error) {
 	return
 }
 
-func HttpPost(requestUrl string, data url.Values, header url.Values) (content string, err error) {
+func HttpPost(requestUrl string, data ValueSet, header url.Values) (content string, err error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -213,12 +213,7 @@ func HttpPost(requestUrl string, data url.Values, header url.Values) (content st
 		Transport: tr,
 	}
 
-	query := make(map[string]string, len(data))
-	for k, _ := range data {
-		query[k] = data.Get(k)
-	}
-
-	str, _ := json.Marshal(query)
+	str, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", requestUrl, strings.NewReader(string(str)))
 	if err != nil {
 		return
