@@ -88,17 +88,23 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 	out["speed"] 	  = outParams.Speed
 	out["selectedAc"] = outParams.SelectedAc
 
-	dataSet := make(ValueSet)
-	dataSet["appKey"] = scheme.AppKey
-	dataSet["timestamp"] = MillUnix()
-	dataSet["sign"] = strings.ToUpper(getSign(scheme, out))
+	// 请求地址参数，方便调试
+	dataSet := url.Values{}
+	dataSet.Set("appKey", scheme.AppKey)
+	dataSet.Set("timestamp", strconv.FormatInt(MillUnix(), 10))
+	dataSet.Set("sign", strings.ToUpper(getSign(scheme, out)))
 	for k, v := range out {
-		dataSet[k] = v
+		dataSet.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	url := scheme.RequestUrl + acSetUri
-	response, err := HttpPost(url, dataSet, nil)
-	log.Printf("%s,%v,%s", url, dataSet, response)
+	// JSON请求参数
+	out["appKey"] = scheme.AppKey
+	out["timestamp"] = strconv.FormatInt(MillUnix(), 10)
+	out["sign"] = strings.ToUpper(getSign(scheme, out))
+
+	url := scheme.RequestUrl + acSetUri + "?" + dataSet.Encode()
+	response, err := HttpPost(url, out, nil)
+	log.Printf("%s,%s", url, response)
 	if err != nil {
 		return
 	}
@@ -214,6 +220,7 @@ func HttpPost(requestUrl string, data ValueSet, header url.Values) (content stri
 	}
 
 	str, _ := json.Marshal(data)
+	log.Printf("HttpPost Json Param: %s", str)
 	req, err := http.NewRequest("POST", requestUrl, strings.NewReader(string(str)))
 	if err != nil {
 		return
