@@ -95,8 +95,9 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 		params.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	url := scheme.RequestUrl + acSetUri + "?" + params.Encode()
-	response, err := HttpPost(url, params.Encode(), nil)
+	query, _ := url.QueryUnescape(params.Encode())
+	url := scheme.RequestUrl + acSetUri + "?" + query
+	response, err := HttpPost(url, params, nil)
 	log.Printf("%s,%v", url, response)
 	if err != nil {
 		return
@@ -203,7 +204,7 @@ func HttpGet(requestUrl string, header url.Values) (content string, err error) {
 	return
 }
 
-func HttpPost(requestUrl string, data string, header url.Values) (content string, err error) {
+func HttpPost(requestUrl string, data url.Values, header url.Values) (content string, err error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -212,11 +213,9 @@ func HttpPost(requestUrl string, data string, header url.Values) (content string
 		Transport: tr,
 	}
 
-	query := make(map[string]string)
-	param := strings.Split(data, "&")
-	for _, v := range param {
-		value := strings.Split(v, "=")
-		query[value[0]] = value[1]
+	query := make(map[string]string, len(data))
+	for k, _ := range data {
+		query[k] = data.Get(k)
 	}
 
 	str, _ := json.Marshal(query)
