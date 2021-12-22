@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
+	_ "log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -227,7 +227,7 @@ func HttpPost(requestUrl string, data ValueSet, header url.Values) (content stri
 	}
 
 	req.Header.Set("Content-Type","application/json")
-	req.Header.Set("Content-Length", strconv.Itoa(len(data)))
+	req.Header.Set("Content-Length", strconv.Itoa(len(str)))
 	if header != nil {
 		for k, _ := range header {
 			req.Header.Set(k, fmt.Sprintf("%v", header.Get(k)))
