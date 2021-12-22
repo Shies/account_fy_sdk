@@ -50,7 +50,7 @@ func (a *accountService) GetQueryInfo(scheme *Scheme) (res []*AcStatus, err erro
 
 	url := scheme.RequestUrl + showAcInfoUri + "?" + params.Encode()
 	response, err := HttpGet(url, nil)
-	log.Printf("%s,%s", url, response)
+	//log.Printf("%s,%s", url, response)
 	if err != nil {
 		return
 	}
@@ -104,7 +104,7 @@ func (a *accountService) SetQueryParam(scheme *Scheme, outParams *AcSetParams) (
 
 	url := scheme.RequestUrl + acSetUri + "?" + dataSet.Encode()
 	response, err := HttpPost(url, out, nil)
-	log.Printf("%s,%s", url, response)
+	//log.Printf("%s,%s", url, response)
 	if err != nil {
 		return
 	}
@@ -141,7 +141,7 @@ func (a *accountService) GetElecFeeSum(scheme *Scheme, outParams *ElecSumParams)
 
 	url := scheme.RequestUrl + elecFeeSumUri + "?" + params.Encode()
 	response, err := HttpGet(url, nil)
-	log.Printf("%s,%s", url, response)
+	//log.Printf("%s,%s", url, response)
 	if err != nil {
 		return
 	}
@@ -220,7 +220,7 @@ func HttpPost(requestUrl string, data ValueSet, header url.Values) (content stri
 	}
 
 	str, _ := json.Marshal(data)
-	log.Printf("HttpPost Json Param: %s", str)
+	//log.Printf("HttpPost Json Param: %s", str)
 	req, err := http.NewRequest("POST", requestUrl, strings.NewReader(string(str)))
 	if err != nil {
 		return
